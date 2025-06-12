@@ -58,7 +58,7 @@ func (s *StatusService) sendStatusEvent() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 
-	status := models.StatusEvent{
+	status := structures.StatusEvent{
 		Status:    "healthy",
 		Message:   "System operating normally",
 		CPU:       float64(runtime.NumGoroutine()),
@@ -68,7 +68,7 @@ func (s *StatusService) sendStatusEvent() {
 
 	data, _ := json.Marshal(status)
 
-	event := models.Event{
+	event := structures.Event{
 		ID:        uuid.New().String(),
 		Type:      "status",
 		Data:      string(data),
