@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/isgo-golgo13/sse-status-server/internal/services"
@@ -24,12 +25,14 @@ func NewSSEHandler(eventcaster *sse.EventCaster, statusService *services.StatusS
 	}
 }
 
-// HandleSSE handles SSE connections
-func (h *SSEHandler) HandleSSE(ctx *gofr.Context) (interface{}, error) {
+// HandleSSEHTTP handles SSE connections using native HTTP
+func (h *SSEHandler) HandleSSEHTTP(w http.ResponseWriter, r *http.Request) {
 	// Set SSE headers
-	ctx.Header("Content-Type", "text/event-stream")
-	ctx.Header("Cache-Control", "no-cache")
-	ctx.Header("Connection", "keep-alive")
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	// Create client
 	clientID := uuid.New().String()
@@ -42,29 +45,34 @@ func (h *SSEHandler) HandleSSE(ctx *gofr.Context) (interface{}, error) {
 	h.eventcaster.Register(client)
 
 	// Send initial connection event
-	fmt.Fprintf(ctx.ResponseWriter, "id: %s\nevent: connected\ndata: {\"clientId\":\"%s\"}\n\n", clientID, clientID)
-	flusher, ok := ctx.ResponseWriter.(interface{ Flush() })
-	if ok {
+	fmt.Fprintf(w, "id: %s\nevent: connected\ndata: {\"clientId\":\"%s\"}\n\n", clientID, clientID)
+	if flusher, ok := w.(http.Flusher); ok {
 		flusher.Flush()
 	}
 
 	// Ensure cleanup
 	defer h.eventcaster.Unregister(clientID)
 
-	// Listen for events
-	for event := range client.Events {
-		fmt.Fprint(ctx.ResponseWriter, sse.SerializeEvent(event))
-		if ok {
-			flusher.Flush()
+	// Listen for events or client disconnect
+	for {
+		select {
+		case event, ok := <-client.Events:
+			if !ok {
+				return
+			}
+			fmt.Fprint(w, sse.SerializeEvent(event))
+			if flusher, ok := w.(http.Flusher); ok {
+				flusher.Flush()
+			}
+		case <-r.Context().Done():
+			return
 		}
 	}
-
-	return nil, nil
 }
 
 // HandleDisconnect handles client disconnection requests
 func (h *SSEHandler) HandleDisconnect(ctx *gofr.Context) (interface{}, error) {
-	clientID := ctx.Param("clientId")
+	clientID := ctx.PathParam("clientId")
 	if clientID == "" {
 		return nil, fmt.Errorf("client ID required")
 	}
