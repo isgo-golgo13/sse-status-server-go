@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 
 const D3Screen = ({ events, connectionStatus }) => {
   const svgRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 300 });
 
-  // Extract status data for visualization
-  const getStatusData = () => {
+  // Extract status data for visualization - memoized to prevent unnecessary re-renders
+  const getStatusData = useCallback(() => {
     const statusEvents = events
       .filter(event => event.type === 'status' && event.data)
       .slice(-20) // Keep last 20 points for performance
@@ -19,7 +19,7 @@ const D3Screen = ({ events, connectionStatus }) => {
       }));
     
     return statusEvents;
-  };
+  }, [events]);
 
   // Update dimensions on resize
   useEffect(() => {
@@ -320,7 +320,7 @@ const D3Screen = ({ events, connectionStatus }) => {
       .style('fill', '#333333')
       .text('Memory');
 
-  }, [events, dimensions]);
+  }, [getStatusData, dimensions]); // Fixed: included getStatusData in dependencies
 
   const getStatusMessage = () => {
     if (connectionStatus === 'connecting') return 'Connecting to server...';

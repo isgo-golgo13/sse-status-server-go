@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { sseService } from '../services/sseService';
+import { sseService } from '../services/SSEService';
 
 export const useSSE = () => {
   const [events, setEvents] = useState([]);
@@ -103,7 +103,7 @@ export const useSSE = () => {
         sseService.disconnect();
       }
     };
-  }, []); // Empty dependency array - only run on mount
+  }, [connect]); // Fixed: included connect in dependencies
 
   // Reconnect function for manual retry
   const reconnect = useCallback(() => {

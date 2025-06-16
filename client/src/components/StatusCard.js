@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSSE } from '../hooks/useSSE';
+import { useSSE } from '../hooks/UseSSE';
 import DisconnectButton from './DisconnectButton';
 import D3Screen from './D3Screen';
 import StatusTextArea from './StatusTextArea';
