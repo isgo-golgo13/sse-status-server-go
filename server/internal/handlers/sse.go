@@ -25,6 +25,61 @@ func NewSSEHandler(eventcaster *sse.EventCaster, statusService *services.StatusS
 	}
 }
 
+// HandleSSEGoFr handles SSE connections using GoFr context
+func (h *SSEHandler) HandleSSEGoFr(ctx *gofr.Context) (interface{}, error) {
+	// Get the underlying response writer and request
+	w := ctx.Context.Value("responseWriter").(http.ResponseWriter)
+	r := ctx.Context.Value("request").(*http.Request)
+
+	// Set SSE headers
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Handle preflight requests
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return nil, nil
+	}
+
+	// Create client
+	clientID := uuid.New().String()
+	client := &sse.Client{
+		ID:     clientID,
+		Events: make(chan structures.Event, 10),
+	}
+
+	// Register client
+	h.eventcaster.Register(client)
+
+	// Send initial connection event
+	fmt.Fprintf(w, "id: %s\nevent: connected\ndata: {\"clientId\":\"%s\"}\n\n", clientID, clientID)
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+
+	// Ensure cleanup
+	defer h.eventcaster.Unregister(clientID)
+
+	// Listen for events or client disconnect
+	for {
+		select {
+		case event, ok := <-client.Events:
+			if !ok {
+				return nil, nil
+			}
+			fmt.Fprint(w, sse.SerializeEvent(event))
+			if flusher, ok := w.(http.Flusher); ok {
+				flusher.Flush()
+			}
+		case <-r.Context().Done():
+			return nil, nil
+		}
+	}
+}
+
 // HandleSSEHTTP handles SSE connections using native HTTP
 func (h *SSEHandler) HandleSSEHTTP(w http.ResponseWriter, r *http.Request) {
 	// Set SSE headers
