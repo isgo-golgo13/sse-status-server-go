@@ -6,10 +6,31 @@ SSE provides Uni-Directional (Server-to-Client) Real-Time Texttual Event Streami
 The Go GoFr server is configured to use SSE as follows.
 
 ```go
-// Sets SSE headers
-w.Header().Set("Content-Type", "text/event-stream")
-w.Header().Set("Cache-Control", "no-cache") 
-w.Header().Set("Connection", "keep-alive")
+// Start a separate HTTP server for SSE on port 8001
+	go func() {
+		sseServer := http.NewServeMux()
+		sseServer.HandleFunc("/sse", func(w http.ResponseWriter, r *http.Request) {
+			// Set CORS headers directly for SSE endpoint
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+
+			// Handle preflight requests
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			sseHandler.HandleSSEHTTP(w, r)
+		})
+
+		fmt.Println("SSE server starting on port 8001...")
+		if err := http.ListenAndServe(":8001", sseServer); err != nil {
+			log.Printf("SSE server error: %v", err)
+		}
+	}()
+
+    ...
 
 // Continuously writes events
 fmt.Fprintf(w, "id: %s\nevent: %s\ndata: %s\n\n", eventID, eventType, jsonData)
