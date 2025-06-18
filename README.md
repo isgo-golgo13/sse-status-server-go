@@ -5,7 +5,7 @@ SSE provides Uni-Directional (Server-to-Client) Real-Time Texttual Event Streami
 
 
 
-![sse-react-client](docs/sse-react-d3-client.png)
+![sse-react-client](docs/)
 
 
 The Go GoFr server is configured to use SSE as follows.
