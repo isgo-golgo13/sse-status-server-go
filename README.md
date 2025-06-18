@@ -20,3 +20,35 @@ npm run dev
 ```
 
 
+## Executing the Server
+
+To run the server (not as a container)
+
+```shell
+make run
+```
+
+To run the server as a container
+
+```shell
+make docker-deploy
+make docker-run
+```
+
+
+
+## Executing the Client 
+
+To run the client (not as a container)
+
+```shell
+make install   # Install the client app package dependencies
+make start
+```
+
+To run the client as a container
+
+```shell
+make docker-deploy
+make docker-run
+```
