@@ -7,7 +7,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>SSE Status Client</h1>
-        <p>Real-time Server-Sent Events monitoring with React.js + D3.js</p>
+        <p>Real-time Server-Sent Events Visualization</p>
       </header>
       
       <main className="main-content">
