@@ -1,7 +1,7 @@
 # SSE Status Server (Go w/ React.js and D3.js)
 Production-grade SSE (Server-Sent-Events) Status Server Architecture Workflow using Go, GoFr w/ React.js/D3.js Client Application
 
-SSE provides uni-directional (server-to-client) real-time notification event streaming (live feeds, live feed display, live progress updates). 
+SSE provides Uni-Directional (Server-to-Client) Real-Time Texttual Event Streaming (live feeds, live feed display, live progress updates). 
 
 The Go GoFr server is configured to use SSE as follows.
 
