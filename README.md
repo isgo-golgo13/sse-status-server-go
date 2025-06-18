@@ -3,6 +3,11 @@ Production-grade SSE (Server-Sent-Events) Status Server Architecture Workflow us
 
 SSE provides Uni-Directional (Server-to-Client) Real-Time Texttual Event Streaming (live feeds, live feed display, live progress updates). 
 
+
+
+![sse-react-client](docs/sse-react-d3-client.png)
+
+
 The Go GoFr server is configured to use SSE as follows.
 
 ```go
