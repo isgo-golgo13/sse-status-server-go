@@ -10,3 +10,13 @@ cd client
 npm install d3
 ```
 
+or using `Vite` as `npx create-react-app` is now deprecated.
+
+```shell
+npm create vite@latest client -- --template react
+cd client
+npm install d3
+npm run dev
+```
+
+
